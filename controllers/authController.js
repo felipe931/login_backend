@@ -26,4 +26,19 @@ const refreshToken = (req, res) => {
  if (!token) return res.status(401).json({ error: 'Acesso negado' });
  if (!refreshTokens.includes(token)) return res.status(403).json({ error: 'Token inválido' });
 
+refreshTokens = refreshTokens.filter(t => t !== token);
+
+  try {
+    const verified = jwt.verify(token, 'refresh_Secreta');
+    const newRefreshToken = jwt.sign({ email: verified.email, role: verified.role }, 'refresh_Secreta', { expiresIn: '7d' });
+    refreshTokens.push(newRefreshToken);
+
+    const newAccessToken = jwt.sign({ email: verified.email, role: verified.role }, 'secreta', { expiresIn: '15m' });
+
+    res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+  }  catch (error) {
+    return res.status(403).json({ error: 'Token inválido' });
+  }
+};
+
 module.exports = { login, refreshToken };
