@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
+let refreshTokens = [];
 
 const users = [
- { email: 'user@example.com', password: '123456' }
+ { email: 'admin@example.com', password: 'admin123', role: 'admin' },
+ { email: 'user@example.com', password: 'user123', role: 'student' },
 ];
 
 const login = (req, res) => {
@@ -10,8 +12,18 @@ const login = (req, res) => {
   if (!user) {
    return res.status(401).json({ error: 'Credenciais inválidas' });
  }
-  const token = jwt.sign({ email: user.email }, 'secreta', { expiresIn: '1h' });
- res.json({ token });
+  const accessToken = jwt.sign({ email: user.email, role: user.role }, 'secreta', { expiresIn: '1h' });
+ 
+  const refreshToken = jwt.sign({ email: user.email, role: user.role }, 'refresh_Secreta', { expiresIn: '7d' });
+ 
+  refreshTokens.push(refreshToken);
+ 
+  res.json({ accessToken, refreshToken });
 };
 
-module.exports = { login };
+const refreshToken = (req, res) => {
+ const { token } = req.body;
+ if (!token) return res.status(401).json({ error: 'Acesso negado' });
+ if (!refreshTokens.includes(token)) return res.status(403).json({ error: 'Token inválido' });
+
+module.exports = { login, refreshToken };
