@@ -17,7 +17,10 @@ const login = (req, res) => {
   const refreshToken = jwt.sign({ email: user.email, role: user.role }, 'refresh_Secreta', { expiresIn: '7d' });
  
   refreshTokens.push(refreshToken);
- 
+
+  res.cookie('access', accessToken, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 3600000 });
+  res.cookie('refresh', refreshToken, { httpOnly: true, secure: true, sameSite: 'strict', maxAge: 604800000 });
+
   res.json({ accessToken, refreshToken });
 };
 
@@ -41,4 +44,5 @@ refreshTokens = refreshTokens.filter(t => t !== token);
   }
 };
 
-module.exports = { login, refreshToken };
+
+module.exports = { login, refreshToken };        
